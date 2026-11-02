@@ -24,6 +24,6 @@ jobs:
         if: always()
         with:
           name: page-debug
-          path: |
+          path: after-login.png
             error.png
             page.html
