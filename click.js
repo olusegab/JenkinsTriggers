@@ -1,5 +1,4 @@
 const { chromium } = require('playwright');
-const fs = require('fs');
 
 (async () => {
   const browser = await chromium.launch();
@@ -7,22 +6,31 @@ const fs = require('fs');
 
   try {
     await page.goto('https://www.mylovers.online/discover', { waitUntil: 'networkidle' });
-    await page.waitForTimeout(3000);
 
-    console.log('Final URL:', page.url());
+    await page.fill('input[type="email"]', process.env.SITE_USER);
+    await page.fill('input[type="password"]', process.env.SITE_PASS);
+    await page.click('button:has-text("Sign In")');
 
-    const info = await page.evaluate(() => ({
-      inputs: [...document.querySelectorAll('input')].map(i => ({
-        type: i.type, name: i.name, id: i.id, placeholder: i.placeholder
-      })),
-      buttons: [...document.querySelectorAll('button, a[role="button"]')].map(b => ({
-        text: b.innerText.trim().slice(0, 50), id: b.id, cls: b.className.toString().slice(0, 60)
-      })),
-    }));
-    console.log(JSON.stringify(info, null, 2));
+    // wait for the login form to disappear
+    await page.waitForSelector('input[type="password"]', { state: 'detached', timeout: 20000 });
+    await page.waitForTimeout(4000);
 
-    await page.screenshot({ path: 'error.png', fullPage: true });
-    fs.writeFileSync('page.html', await page.content());
+    console.log('LOGIN OK. URL:', page.url());
+
+    const buttons = await page.evaluate(() =>
+      [...document.querySelectorAll('button, a[role="button"]')].map(b => ({
+        text: b.innerText.trim().slice(0, 50),
+        id: b.id,
+        cls: b.className.toString().slice(0, 60),
+      }))
+    );
+    console.log(JSON.stringify(buttons, null, 2));
+
+    await page.screenshot({ path: 'after-login.png', fullPage: true });
+  } catch (err) {
+    console.log('LOGIN FAILED:', err.message);
+    await page.screenshot({ path: 'after-login.png', fullPage: true });
+    process.exitCode = 1;
   } finally {
     await browser.close();
   }
