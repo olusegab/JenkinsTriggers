@@ -2,9 +2,9 @@ name: Daily click
 
 on:
   schedule:
-    - cron: '0 8 * * *'    # 9:00 AM Lagos (UTC+1)
+    - cron: '0 8 * * *'    # 9:00 AM Lagos
     - cron: '0 20 * * *'   # 9:00 PM Lagos
-  workflow_dispatch:        # lets you run it manually to test
+  workflow_dispatch:
 
 jobs:
   click:
