@@ -1,27 +1,28 @@
 const { chromium } = require('playwright');
+const fs = require('fs');
 
 (async () => {
   const browser = await chromium.launch();
-  const page = await browser.newPage();
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 
   try {
-    await page.goto('https://www.mylovers.online/login', { waitUntil: 'networkidle' });
-
-    // TODO: replace these selectors with the real ones (right-click > Inspect on the site)
-    await page.fill('input[name="username"]', process.env.SITE_USER);
-    await page.fill('input[name="password"]', process.env.SITE_PASS);
-    await page.click('button[type="submit"]');
-
     await page.goto('https://www.mylovers.online/discover', { waitUntil: 'networkidle' });
+    await page.waitForTimeout(3000);
 
-    // TODO: the button you want clicked
-    await page.click('button:has-text("Your Button Text")');
-    await page.waitForTimeout(2000);
+    console.log('Final URL:', page.url());
 
-    console.log('Done');
-  } catch (err) {
+    const info = await page.evaluate(() => ({
+      inputs: [...document.querySelectorAll('input')].map(i => ({
+        type: i.type, name: i.name, id: i.id, placeholder: i.placeholder
+      })),
+      buttons: [...document.querySelectorAll('button, a[role="button"]')].map(b => ({
+        text: b.innerText.trim().slice(0, 50), id: b.id, cls: b.className.toString().slice(0, 60)
+      })),
+    }));
+    console.log(JSON.stringify(info, null, 2));
+
     await page.screenshot({ path: 'error.png', fullPage: true });
-    throw err;
+    fs.writeFileSync('page.html', await page.content());
   } finally {
     await browser.close();
   }
