@@ -23,7 +23,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: page-debug
-          path: after-login.png
-            error.png
-            page.html
+          name: screenshots
+          path: "*.png"
