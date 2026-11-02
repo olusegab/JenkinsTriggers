@@ -1,0 +1,27 @@
+name: Daily click
+
+on:
+  schedule:
+    - cron: '0 8 * * *'    # 9:00 AM Lagos (UTC+1)
+    - cron: '0 20 * * *'   # 9:00 PM Lagos
+  workflow_dispatch:        # lets you run it manually to test
+
+jobs:
+  click:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm init -y && npm install playwright
+      - run: npx playwright install --with-deps chromium
+      - run: node click.js
+        env:
+          SITE_USER: ${{ secrets.SITE_USER }}
+          SITE_PASS: ${{ secrets.SITE_PASS }}
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: error-screenshot
+          path: error.png
